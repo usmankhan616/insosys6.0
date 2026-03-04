@@ -11,6 +11,7 @@ const AddHealthRecord = () => {
     const [medications, setMedications] = useState([
         { name: '', quantity: '1', course: '3 Days', morning: false, afternoon: false, evening: false }
     ]);
+    const [hoveredBtn, setHoveredBtn] = useState(null);
 
     const addMedicineField = () => {
         setMedications([...medications, { name: '', quantity: '1', course: '3 Days', morning: false, afternoon: false, evening: false }]);
@@ -41,26 +42,34 @@ const AddHealthRecord = () => {
 
     return (
         <div style={containerStyle}>
-            <h2 style={{ color: '#1DB954', textAlign: 'center' }}>Add Clinical Record</h2>
+            <h2 style={{ color: '#1DB954', textAlign: 'center', marginTop: 0 }}>💊 Add Clinical Record</h2>
 
             {medications.map((med, index) => (
                 <div key={index} style={medicationCard}>
-                    <label>Medication Name {index + 1}</label>
+                    <label style={{ fontWeight: '600', color: '#333', marginBottom: '8px', display: 'block' }}>Medication Name {index + 1}</label>
                     <input
                         style={inputStyle}
-                        placeholder="e.g. Amoxicillin"
+                        placeholder="e.g., Amoxicillin"
                         value={med.name}
                         onChange={(e) => handleInputChange(index, 'name', e.target.value)}
                     />
 
-                    <div style={{ display: 'flex', gap: '15px' }}>
+                    <div style={{ display: 'flex', gap: '16px' }}>
                         <div style={{ flex: 1 }}>
-                            <label>Quantity</label>
-                            <input type="number" style={inputStyle} value={med.quantity} onChange={(e) => handleInputChange(index, 'quantity', e.target.value)} />
+                            <label style={{ fontWeight: '600', color: '#333', fontSize: '0.9rem', display: 'block', marginBottom: '6px' }}>Quantity</label>
+                            <input 
+                                type="number" 
+                                style={inputStyle} 
+                                value={med.quantity} 
+                                onChange={(e) => handleInputChange(index, 'quantity', e.target.value)} 
+                            />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label>Course</label>
-                            <select style={inputStyle} value={med.course} onChange={(e) => handleInputChange(index, 'course', e.target.value)}>
+                            <label style={{ fontWeight: '600', color: '#333', fontSize: '0.9rem', display: 'block', marginBottom: '6px' }}>Course Duration</label>
+                            <select 
+                                style={inputStyle} 
+                                value={med.course} 
+                                onChange={(e) => handleInputChange(index, 'course', e.target.value)}>
                                 <option>3 Days</option>
                                 <option>5 Days</option>
                                 <option>1 Week</option>
@@ -68,27 +77,48 @@ const AddHealthRecord = () => {
                         </div>
                     </div>
 
-                    <label>Schedule</label>
-                    <div style={{ display: 'flex', gap: '20px', marginBottom: '10px' }}>
-                        <label><input type="checkbox" checked={med.morning} onChange={(e) => handleInputChange(index, 'morning', e.target.checked)} /> Morning</label>
-                        <label><input type="checkbox" checked={med.afternoon} onChange={(e) => handleInputChange(index, 'afternoon', e.target.checked)} /> Afternoon</label>
-                        <label><input type="checkbox" checked={med.evening} onChange={(e) => handleInputChange(index, 'evening', e.target.checked)} /> Evening</label>
+                    <label style={{ fontWeight: '600', color: '#333', marginBottom: '12px', marginTop: '12px', display: 'block' }}>Dosage Schedule</label>
+                    <div style={{ display: 'flex', gap: '24px', marginBottom: '16px', backgroundColor: '#f5f9f7', padding: '12px 14px', borderRadius: '8px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '500' }}>
+                            <input type="checkbox" checked={med.morning} onChange={(e) => handleInputChange(index, 'morning', e.target.checked)} />
+                            🌅 Morning
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '500' }}>
+                            <input type="checkbox" checked={med.afternoon} onChange={(e) => handleInputChange(index, 'afternoon', e.target.checked)} />
+                            ☀️ Afternoon
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '500' }}>
+                            <input type="checkbox" checked={med.evening} onChange={(e) => handleInputChange(index, 'evening', e.target.checked)} />
+                            🌙 Evening
+                        </label>
                     </div>
-                    <hr />
+                    <hr style={{ borderColor: '#e0e0e0', marginTop: '16px', marginBottom: '16px' }} />
                 </div>
             ))}
 
-            <button onClick={addMedicineField} style={btnAdd}>➕ Add Another Medicine</button>
-            <button onClick={savePrescription} style={btnSave}>Save Clinical Record</button>
+            <button 
+                onClick={addMedicineField} 
+                onMouseEnter={() => setHoveredBtn('add')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={{ ...btnAdd, ...(hoveredBtn === 'add' ? { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0,0,0,0.12)', backgroundColor: '#e8e8e8' } : {}) }}>
+                ➕ Add Another Medicine
+            </button>
+            <button 
+                onClick={savePrescription} 
+                onMouseEnter={() => setHoveredBtn('save')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={{ ...btnSave, ...(hoveredBtn === 'save' ? { transform: 'translateY(-2px)', boxShadow: '0 6px 16px rgba(29, 185, 84, 0.3)', backgroundColor: '#17a342' } : {}) }}>
+                Save Clinical Record
+            </button>
         </div>
     );
 };
 
 // Styles
-const containerStyle = { maxWidth: '500px', margin: '20px auto', padding: '25px', border: '1px solid #ddd', borderRadius: '15px', backgroundColor: '#fff' };
-const medicationCard = { marginBottom: '20px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '10px' };
-const inputStyle = { width: '100%', padding: '10px', margin: '8px 0', border: '1px solid #ccc', borderRadius: '8px' };
-const btnAdd = { width: '100%', padding: '10px', marginBottom: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ccc', borderRadius: '8px', cursor: 'pointer' };
-const btnSave = { width: '100%', padding: '15px', backgroundColor: '#1DB954', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' };
+const containerStyle = { maxWidth: '520px', margin: '32px auto', padding: '32px', border: '2px solid #f0f0f0', borderRadius: '14px', backgroundColor: '#fff', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', transition: 'all 0.3s ease' };
+const medicationCard = { marginBottom: '24px', padding: '18px', backgroundColor: '#f9f9f9', borderRadius: '10px', border: '2px solid #f0f0f0', transition: 'all 0.3s ease' };
+const inputStyle = { width: '100%', padding: '12px 14px', margin: '8px 0', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '0.95rem', fontFamily: 'inherit', transition: 'all 0.3s ease', boxSizing: 'border-box' };
+const btnAdd = { width: '100%', padding: '12px 16px', marginBottom: '12px', backgroundColor: '#f5f5f5', border: '2px solid #e0e0e0', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.3s ease', fontSize: '0.95rem' };
+const btnSave = { width: '100%', padding: '13px 16px', backgroundColor: '#1DB954', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.3s ease', fontSize: '0.95rem' };
 
 export default AddHealthRecord;

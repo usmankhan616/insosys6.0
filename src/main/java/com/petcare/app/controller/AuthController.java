@@ -27,18 +27,18 @@ public class AuthController {
     }
 
     @GetMapping("/profile")
-    public User getProfile(@RequestParam String email) {
+    public User getProfile(@RequestParam("email") String email) {
         return userService.getUserByEmail(email);
     }
 
     @GetMapping("/check-email")
-    public ResponseEntity<Boolean> checkEmail(@RequestParam String email) {
+    public ResponseEntity<Boolean> checkEmail(@RequestParam("email") String email) {
         boolean exists = userService.emailExists(email);
         return ResponseEntity.ok(exists);
     }
 
     @DeleteMapping("/delete")
-    public String deleteAccount(@RequestParam String email) {
+    public String deleteAccount(@RequestParam("email") String email) {
         User user = userService.getUserByEmail(email);
         if (user != null) {
             userService.deleteUser(user.getId());
@@ -48,7 +48,7 @@ public class AuthController {
     }
 
     @PutMapping("/change-password")
-    public String changePassword(@RequestParam String email, @RequestParam String newPassword) {
+    public String changePassword(@RequestParam("email") String email, @RequestParam("newPassword") String newPassword) {
         User user = userService.getUserByEmail(email);
         if (user != null) {
             user.setPassword(newPassword);
@@ -60,6 +60,9 @@ public class AuthController {
 
     @PostMapping("/signup")
     public User signUp(@RequestBody User user) {
+        if ("DOCTOR".equalsIgnoreCase(user.getRole())) {
+            user.setAvailable(1);
+        }
         return userService.registerUser(user);
     }
 
@@ -75,10 +78,16 @@ public class AuthController {
     class LoginResponse {
         public String message;
         public String role;
-        public LoginResponse(String m, String r) { this.message = m; this.role = r; }
+
+        public LoginResponse(String m, String r) {
+            this.message = m;
+            this.role = r;
+        }
     }
+
     @PutMapping("/availability")
-    public ResponseEntity<?> updateAvailability(@RequestParam String email, @RequestParam boolean status) {
+    public ResponseEntity<?> updateAvailability(@RequestParam("email") String email,
+            @RequestParam("status") boolean status) {
         User user = userService.getUserByEmail(email);
         if (user != null) {
             // Convert boolean from frontend to 0/1 for the database

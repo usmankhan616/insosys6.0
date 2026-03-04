@@ -15,6 +15,7 @@ public class Appointment {
     private LocalDateTime appointmentTime;
     private String type;
     private String status;
+    private String rejectionReason;
 
     @ManyToOne(fetch = FetchType.EAGER) // Added Eager fetching to prevent null data
     @JoinColumn(name = "doctor_id")

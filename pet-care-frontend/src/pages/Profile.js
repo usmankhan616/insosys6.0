@@ -88,8 +88,8 @@ const passwordForm = { display: 'flex', flexDirection: 'column', gap: '10px', pa
 const inputStyle = { padding: '10px', borderRadius: '5px', border: '1px solid #ccc' };
 const btnBlue = { padding: '12px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' };
 const btnGreen = { padding: '12px', backgroundColor: '#1DB954', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' };
-const btnCancel = { padding: '5px', background: 'none', border: 'none', color: 'red', cursor: 'pointer', fontSize: '12px' };
+const btnCancel = { padding: '5px', backgroundColor: 'transparent', border: 'none', color: 'red', cursor: 'pointer', fontSize: '12px' };
 const btnRed = { padding: '12px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' };
-const btnBack = { marginTop: '20px', background: 'none', border: 'none', color: '#666', cursor: 'pointer', textDecoration: 'underline' };
+const btnBack = { marginTop: '20px', backgroundColor: 'transparent', border: 'none', color: '#666', cursor: 'pointer', textDecoration: 'underline' };
 
 export default Profile;

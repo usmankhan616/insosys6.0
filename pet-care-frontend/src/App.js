@@ -9,10 +9,22 @@ import PetProfile from './pages/PetProfile';
 import AddHealthRecord from './pages/AddHealthRecord';
 import BookAppointment from './pages/BookAppointment';
 import DoctorDashboard from './pages/DoctorDashboard';
+import HealthMonitoring from './pages/HealthMonitoring';
+import VaccinationSchedule from './pages/VaccinationSchedule';
+import Marketplace from './pages/Marketplace';
+import OrderTracking from './pages/OrderTracking';
+import Meetings from './pages/Meetings';
+import TargetCursor from './components/TargetCursor';
 
 function App() {
   return (
     <Router>
+      <TargetCursor
+        spinDuration={2}
+        hideDefaultCursor
+        parallaxOn
+        hoverDuration={0.2}
+      />
       <Routes>
         {/* Redirect root to login */}
         <Route path="/" element={<Navigate to="/login" />} />
@@ -25,24 +37,26 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
 
-        {/* Phase 3: Health Management Module */}
+        {/* Pet Profile & Health Tracking Module */}
         <Route path="/health-management" element={<HealthManagement />} />
         <Route path="/add-pet" element={<AddPet />} />
         <Route path="/pet-profile/:petId" element={<PetProfile />} />
         <Route path="/add-health-record/:petId" element={<AddHealthRecord />} />
+        <Route path="/health-monitoring" element={<HealthMonitoring />} />
+        <Route path="/vaccination-schedule" element={<VaccinationSchedule />} />
 
-        {/* Phase 4: Appointments & Doctor Management */}
-        {/* Pet Owner Booking Page */}
+        {/* Appointment Scheduling Module */}
         <Route path="/appointments" element={<BookAppointment />} />
+        <Route path="/meetings" element={<Meetings />} />
 
         {/* Doctor Dashboard Routes */}
-        {/* Note: We map multiple paths to DoctorDashboard to fix your "No routes matched" errors */}
         <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
         <Route path="/vet-appointments" element={<DoctorDashboard />} />
         <Route path="/patient-records" element={<DoctorDashboard />} />
 
-        {/* Placeholder for future Marketplace */}
-        <Route path="/marketplace" element={<div>Marketplace Module Coming Soon</div>} />
+        {/* Pet Marketplace & Product Purchases Module */}
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/order-tracking" element={<OrderTracking />} />
 
         {/* Catch-all for undefined routes */}
         <Route path="*" element={<Navigate to="/dashboard" />} />
