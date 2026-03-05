@@ -14,17 +14,10 @@ import VaccinationSchedule from './pages/VaccinationSchedule';
 import Marketplace from './pages/Marketplace';
 import OrderTracking from './pages/OrderTracking';
 import Meetings from './pages/Meetings';
-import TargetCursor from './components/TargetCursor';
 
 function App() {
   return (
     <Router>
-      <TargetCursor
-        spinDuration={2}
-        hideDefaultCursor
-        parallaxOn
-        hoverDuration={0.2}
-      />
       <Routes>
         {/* Redirect root to login */}
         <Route path="/" element={<Navigate to="/login" />} />
