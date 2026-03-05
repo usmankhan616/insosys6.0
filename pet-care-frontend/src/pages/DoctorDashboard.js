@@ -258,10 +258,35 @@ const DoctorDashboard = () => {
                                                 }}>Reject</button>
                                             </>
                                         ) : app.status === 'ACCEPTED' ? (
-                                            <>
-                                                <button className="btn btn-primary cursor-target" onClick={() => openPrescription(app)}>Start Consultation</button>
-                                                <button className="btn btn-secondary cursor-target" onClick={() => completeAppointment(app.id)}>✔ Mark Completed</button>
-                                            </>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <button className="btn btn-primary cursor-target" onClick={() => openPrescription(app)}>Start Consultation</button>
+                                                    <button className="btn btn-secondary cursor-target" onClick={() => completeAppointment(app.id)}>✔ Mark Completed</button>
+                                                </div>
+                                                {app.type === 'ONLINE' && (
+                                                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                                                        <input
+                                                            type="text"
+                                                            className="form-input"
+                                                            placeholder="Google Meet Link..."
+                                                            defaultValue={app.meetingLink || ''}
+                                                            id={`meet-link-${app.id}`}
+                                                            style={{ flex: 1, padding: '8px', fontSize: '14px' }}
+                                                        />
+                                                        <button className="btn btn-outline cursor-target" onClick={async () => {
+                                                            const link = document.getElementById(`meet-link-${app.id}`).value;
+                                                            if (!link) return alert("Please enter a link first");
+                                                            try {
+                                                                await axios.patch(`http://localhost:8080/api/appointments/${app.id}/meeting-link?link=${encodeURIComponent(link)}`);
+                                                                alert("Meeting Link Saved!");
+                                                                fetchData();
+                                                            } catch (e) { alert("Failed to save link"); }
+                                                        }} style={{ padding: '8px 12px', fontSize: '14px' }}>
+                                                            Save Link
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ) : app.status === 'REJECTED' ? (
                                             <button className="btn btn-outline cursor-target" style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }} onClick={async () => {
                                                 if (!window.confirm("Are you sure you want to permanently delete this rejected appointment?")) return;

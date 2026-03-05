@@ -7,6 +7,7 @@ const Meetings = () => {
     const navigate = useNavigate();
     const [appointments, setAppointments] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [currentTime, setCurrentTime] = useState(new Date());
     const userEmail = localStorage.getItem("userEmail");
 
     // Payment Modal States
@@ -38,6 +39,10 @@ const Meetings = () => {
         };
 
         fetchMeetings();
+
+        // Timer for countdowns
+        const timerId = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timerId);
     }, [userEmail, navigate]);
 
     const handlePayClick = (app) => {
@@ -68,8 +73,22 @@ const Meetings = () => {
         }, 1500);
     };
 
-    const activeApps = appointments.filter(app => !app.status || app.status === 'PENDING' || app.status === 'ACCEPTED');
-    const pastApps = appointments.filter(app => app.status === 'COMPLETED' || app.status === 'REJECTED');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const activeApps = appointments.filter(app => {
+        if (app.status === 'COMPLETED' || app.status === 'REJECTED') return false;
+        const appDate = new Date(app.appointmentTime);
+        appDate.setHours(0, 0, 0, 0);
+        return appDate >= today;
+    });
+
+    const pastApps = appointments.filter(app => {
+        if (app.status === 'COMPLETED' || app.status === 'REJECTED') return true;
+        const appDate = new Date(app.appointmentTime);
+        appDate.setHours(0, 0, 0, 0);
+        return appDate < today;
+    });
 
     const renderAppCard = (app) => (
         <div key={app.id} className="card" style={{
@@ -121,20 +140,56 @@ const Meetings = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                {(app.status === 'ACCEPTED' || app.status === 'COMPLETED') && (
+                {activeApps.includes(app) && (app.status === 'ACCEPTED' || app.status === 'COMPLETED') && (
                     paidAppointments.has(app.id) ? (
-                        <button className="btn btn-secondary cursor-target" style={{ backgroundColor: '#28a745', color: '#fff', border: 'none' }} onClick={() => alert("Joining meeting...")}>
-                            🎥 Join Meeting
-                        </button>
+                        app.type === 'ONLINE' ? (
+                            (() => {
+                                const diffMs = new Date(app.appointmentTime) - currentTime;
+                                if (diffMs > 0) {
+                                    // Countdown active
+                                    const h = String(Math.floor(diffMs / 3600000)).padStart(2, '0');
+                                    const m = String(Math.floor((diffMs % 3600000) / 60000)).padStart(2, '0');
+                                    const s = String(Math.floor((diffMs % 60000) / 1000)).padStart(2, '0');
+                                    return (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', border: '1px solid #ff4d4f', borderRadius: '8px', backgroundColor: '#fff2f0' }}>
+                                            <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>⏳ Starts in:</span>
+                                            <span style={{ color: '#cf1322', fontFamily: 'monospace', fontSize: '18px', fontWeight: 'bold' }}>{h}:{m}:{s}</span>
+                                        </div>
+                                    );
+                                } else {
+                                    // Timer expired, show button
+                                    return (
+                                        <button className="btn btn-secondary cursor-target" style={{ backgroundColor: '#28a745', color: '#fff', border: 'none' }} onClick={() => {
+                                            if (app.meetingLink) {
+                                                window.open(app.meetingLink, '_blank', 'noopener,noreferrer');
+                                            } else {
+                                                alert("The doctor hasn't provided the meeting link yet.");
+                                            }
+                                        }}>
+                                            🎥 Join Meeting
+                                        </button>
+                                    );
+                                }
+                            })()
+                        ) : (
+                            <button className="btn btn-secondary cursor-target" style={{ backgroundColor: '#17a2b8', color: '#fff', border: 'none' }} onClick={() => alert("Clinic appointment paid. See you soon!")}>
+                                🏥 Access Pass
+                            </button>
+                        )
                     ) : (
                         <button className="btn btn-primary cursor-target" onClick={() => handlePayClick(app)}>
                             💳 Pay {app.status === 'ACCEPTED' ? 'Booking Fee' : 'Invoice'}
                         </button>
                     )
                 )}
-                {app.status === 'PENDING' && (
+                {activeApps.includes(app) && app.status === 'PENDING' && (
                     <span style={{ color: '#888', fontStyle: 'italic', fontSize: '14px' }}>
                         Waiting for doctor approval...
+                    </span>
+                )}
+                {pastApps.includes(app) && app.status !== 'COMPLETED' && app.status !== 'REJECTED' && (
+                    <span style={{ color: '#dc3545', fontWeight: 'bold', fontSize: '14px' }}>
+                        ⚠️ EXPIRED
                     </span>
                 )}
             </div>
