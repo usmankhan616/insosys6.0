@@ -274,11 +274,13 @@ const DoctorDashboard = () => {
                                                             style={{ flex: 1, padding: '8px', fontSize: '14px' }}
                                                         />
                                                         <button className="btn btn-outline cursor-target" onClick={async () => {
-                                                            const link = document.getElementById(`meet-link-${app.id}`).value;
+                                                            const inputEl = document.getElementById(`meet-link-${app.id}`);
+                                                            const link = inputEl.value;
                                                             if (!link) return alert("Please enter a link first");
                                                             try {
                                                                 await axios.patch(`http://localhost:8080/api/appointments/${app.id}/meeting-link?link=${encodeURIComponent(link)}`);
                                                                 alert("Meeting Link Saved!");
+                                                                inputEl.value = ''; // Clear input on success
                                                                 fetchData();
                                                             } catch (e) { alert("Failed to save link"); }
                                                         }} style={{ padding: '8px 12px', fontSize: '14px' }}>

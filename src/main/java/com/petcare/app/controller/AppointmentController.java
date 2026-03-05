@@ -142,6 +142,19 @@ public class AppointmentController {
         return ResponseEntity.ok("Status updated to " + status);
     }
 
+    // Save Google Meet link for online appointments
+    @PatchMapping("/{id}/meeting-link")
+    public ResponseEntity<?> updateMeetingLink(@PathVariable("id") Long id,
+            @RequestParam("link") String link) {
+        Appointment app = appointmentRepo.findById(id).orElse(null);
+        if (app == null) {
+            return ResponseEntity.status(404).body("Appointment not found");
+        }
+        app.setMeetingLink(link);
+        appointmentRepo.save(app);
+        return ResponseEntity.ok("Meeting link saved successfully.");
+    }
+
     // Allow doctors to delete a rejected appointment
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteAppointment(@PathVariable("id") Long id) {

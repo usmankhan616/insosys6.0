@@ -17,6 +17,9 @@ public class Appointment {
     private String status;
     private String rejectionReason;
 
+    @Column(length = 500)
+    private String meetingLink;
+
     @ManyToOne(fetch = FetchType.EAGER) // Added Eager fetching to prevent null data
     @JoinColumn(name = "doctor_id")
     private User doctor;
