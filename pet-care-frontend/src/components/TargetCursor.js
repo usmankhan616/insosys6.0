@@ -318,10 +318,6 @@ const TargetCursor = ({
     return (
         <div ref={cursorRef} className="target-cursor-wrapper">
             <div ref={dotRef} className="target-cursor-dot" />
-            <div className="target-cursor-corner corner-tl" />
-            <div className="target-cursor-corner corner-tr" />
-            <div className="target-cursor-corner corner-br" />
-            <div className="target-cursor-corner corner-bl" />
         </div>
     );
 };
