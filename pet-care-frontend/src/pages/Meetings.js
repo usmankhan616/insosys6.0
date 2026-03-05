@@ -14,6 +14,10 @@ const Meetings = () => {
     const [selectedApp, setSelectedApp] = useState(null);
     const [paymentProcessing, setPaymentProcessing] = useState(false);
     const [paymentSuccess, setPaymentSuccess] = useState(false);
+    const [paidAppointments, setPaidAppointments] = useState(() => {
+        const stored = localStorage.getItem('paidAppointments_' + userEmail);
+        return stored ? new Set(JSON.parse(stored)) : new Set();
+    });
 
     useEffect(() => {
         if (!userEmail) {
@@ -24,7 +28,8 @@ const Meetings = () => {
         const fetchMeetings = async () => {
             try {
                 const response = await axios.get(`http://localhost:8080/api/appointments/owner-all/${userEmail}`);
-                setAppointments(response.data);
+                const sortedApps = response.data.sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime));
+                setAppointments(sortedApps);
             } catch (err) {
                 console.error("Error fetching meetings:", err);
             } finally {
@@ -50,11 +55,91 @@ const Meetings = () => {
             setTimeout(() => {
                 setShowPaymentModal(false);
                 setPaymentSuccess(false);
+                if (selectedApp) {
+                    setPaidAppointments(prev => {
+                        const next = new Set(prev).add(selectedApp.id);
+                        localStorage.setItem('paidAppointments_' + userEmail, JSON.stringify([...next]));
+                        return next;
+                    });
+                }
                 setSelectedApp(null);
                 alert("Payment Successful! Invoice ID: #INV-" + Math.floor(Math.random() * 1000000));
             }, 2000);
         }, 1500);
     };
+
+    const activeApps = appointments.filter(app => !app.status || app.status === 'PENDING' || app.status === 'ACCEPTED');
+    const pastApps = appointments.filter(app => app.status === 'COMPLETED' || app.status === 'REJECTED');
+
+    const renderAppCard = (app) => (
+        <div key={app.id} className="card" style={{
+            padding: '20px',
+            borderLeft: `5px solid ${app.status === 'ACCEPTED' ? 'var(--success)' :
+                app.status === 'REJECTED' ? 'var(--danger)' :
+                    app.status === 'COMPLETED' ? '#17a2b8' : 'var(--warning)'
+                }`,
+            backgroundColor: '#fff',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '15px'
+        }}>
+            <div style={{ flex: '1 1 300px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <strong style={{ fontSize: '18px' }}>Dr. {app.doctor?.fullName || 'N/A'}</strong>
+                    <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        backgroundColor:
+                            app.status === 'ACCEPTED' ? '#d4edda' :
+                                app.status === 'REJECTED' ? '#f8d7da' :
+                                    app.status === 'COMPLETED' ? '#d1ecf1' : '#fff3cd',
+                        color:
+                            app.status === 'ACCEPTED' ? '#155724' :
+                                app.status === 'REJECTED' ? '#721c24' :
+                                    app.status === 'COMPLETED' ? '#0c5460' : '#856404'
+                    }}>
+                        {app.status || 'PENDING'}
+                    </span>
+                </div>
+                <div style={{ color: '#555', fontSize: '14px', marginBottom: '4px' }}>
+                    <strong>Date & Time:</strong> {app.appointmentTime ? app.appointmentTime.replace('T', ' ').substring(0, 16) : 'N/A'}
+                </div>
+                <div style={{ color: '#555', fontSize: '14px' }}>
+                    <strong>Patient:</strong> {app.pet?.name || 'Unknown'} ({app.type})
+                </div>
+
+                {/* Rejection Reason display */}
+                {app.status === 'REJECTED' && app.rejectionReason && (
+                    <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#fff5f5', border: '1px solid #feb2b2', borderRadius: '8px', color: '#c53030', fontSize: '14px' }}>
+                        <strong>Reason for Rejection:</strong> {app.rejectionReason}
+                    </div>
+                )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                {(app.status === 'ACCEPTED' || app.status === 'COMPLETED') && (
+                    paidAppointments.has(app.id) ? (
+                        <button className="btn btn-secondary cursor-target" style={{ backgroundColor: '#28a745', color: '#fff', border: 'none' }} onClick={() => alert("Joining meeting...")}>
+                            🎥 Join Meeting
+                        </button>
+                    ) : (
+                        <button className="btn btn-primary cursor-target" onClick={() => handlePayClick(app)}>
+                            💳 Pay {app.status === 'ACCEPTED' ? 'Booking Fee' : 'Invoice'}
+                        </button>
+                    )
+                )}
+                {app.status === 'PENDING' && (
+                    <span style={{ color: '#888', fontStyle: 'italic', fontSize: '14px' }}>
+                        Waiting for doctor approval...
+                    </span>
+                )}
+            </div>
+        </div>
+    );
 
     return (
         <div className="container gradient-bg" style={{ minHeight: '100vh', padding: '20px' }}>
@@ -78,70 +163,23 @@ const Meetings = () => {
                         </button>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {appointments.map(app => (
-                            <div key={app.id} className="card" style={{
-                                padding: '20px',
-                                borderLeft: `5px solid ${app.status === 'ACCEPTED' ? 'var(--success)' :
-                                        app.status === 'REJECTED' ? 'var(--danger)' :
-                                            app.status === 'COMPLETED' ? '#17a2b8' : 'var(--warning)'
-                                    }`,
-                                backgroundColor: '#fff',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                flexWrap: 'wrap',
-                                gap: '15px'
-                            }}>
-                                <div style={{ flex: '1 1 300px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                                        <strong style={{ fontSize: '18px' }}>Dr. {app.doctor?.fullName || 'N/A'}</strong>
-                                        <span style={{
-                                            padding: '4px 10px',
-                                            borderRadius: '20px',
-                                            fontSize: '12px',
-                                            fontWeight: 'bold',
-                                            backgroundColor:
-                                                app.status === 'ACCEPTED' ? '#d4edda' :
-                                                    app.status === 'REJECTED' ? '#f8d7da' :
-                                                        app.status === 'COMPLETED' ? '#d1ecf1' : '#fff3cd',
-                                            color:
-                                                app.status === 'ACCEPTED' ? '#155724' :
-                                                    app.status === 'REJECTED' ? '#721c24' :
-                                                        app.status === 'COMPLETED' ? '#0c5460' : '#856404'
-                                        }}>
-                                            {app.status || 'PENDING'}
-                                        </span>
-                                    </div>
-                                    <div style={{ color: '#555', fontSize: '14px', marginBottom: '4px' }}>
-                                        <strong>Date & Time:</strong> {app.appointmentTime ? app.appointmentTime.replace('T', ' ').substring(0, 16) : 'N/A'}
-                                    </div>
-                                    <div style={{ color: '#555', fontSize: '14px' }}>
-                                        <strong>Patient:</strong> {app.pet?.name || 'Unknown'} ({app.type})
-                                    </div>
-
-                                    {/* Rejection Reason display */}
-                                    {app.status === 'REJECTED' && app.rejectionReason && (
-                                        <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#fff5f5', border: '1px solid #feb2b2', borderRadius: '8px', color: '#c53030', fontSize: '14px' }}>
-                                            <strong>Reason for Rejection:</strong> {app.rejectionReason}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                    {(app.status === 'ACCEPTED' || app.status === 'COMPLETED') && (
-                                        <button className="btn btn-primary cursor-target" onClick={() => handlePayClick(app)}>
-                                            💳 Pay {app.status === 'ACCEPTED' ? 'Booking Fee' : 'Invoice'}
-                                        </button>
-                                    )}
-                                    {app.status === 'PENDING' && (
-                                        <span style={{ color: '#888', fontStyle: 'italic', fontSize: '14px' }}>
-                                            Waiting for doctor approval...
-                                        </span>
-                                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                        {activeApps.length > 0 && (
+                            <div>
+                                <h3 style={{ borderBottom: '2px solid #1DB954', paddingBottom: '10px', color: '#2c3e50', marginBottom: '15px' }}>🟢 Active & Upcoming Appointments</h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    {activeApps.map(renderAppCard)}
                                 </div>
                             </div>
-                        ))}
+                        )}
+                        {pastApps.length > 0 && (
+                            <div>
+                                <h3 style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px', color: '#666', marginBottom: '15px' }}>🕰️ Past History (Completed / Rejected)</h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    {pastApps.map(renderAppCard)}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
