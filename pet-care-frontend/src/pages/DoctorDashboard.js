@@ -23,8 +23,11 @@ const DoctorDashboard = () => {
             const statusRes = await axios.get(`http://localhost:8080/api/auth/profile?email=${doctorEmail}`);
             setIsReady(statusRes.data.isAvailable === 1 || statusRes.data.isAvailable === true);
 
+            const todayVal = new Date();
+            todayVal.setHours(0, 0, 0, 0);
+
             let appRes = await axios.get(`http://localhost:8080/api/appointments/doctor/${doctorEmail}`);
-            const appsWithVacc = await Promise.all(appRes.data.map(async app => {
+            const allApps = await Promise.all(appRes.data.map(async app => {
                 if (app.pet && app.pet.id) {
                     try {
                         const vacRes = await axios.get(`http://localhost:8080/api/vaccinations/pet/${app.pet.id}`);
@@ -34,13 +37,36 @@ const DoctorDashboard = () => {
                 }
                 return { ...app, vaccDue: false };
             }));
-            setAppointments(appsWithVacc);
+
+            const activeApps = allApps.filter(app => {
+                if (app.status === 'COMPLETED' || app.status === 'REJECTED') return false;
+                const appDate = new Date(app.appointmentTime);
+                appDate.setHours(0, 0, 0, 0);
+                return appDate >= todayVal;
+            });
+
+            const expiredApps = allApps.filter(app => {
+                if (app.status === 'COMPLETED' || app.status === 'REJECTED') return false;
+                const appDate = new Date(app.appointmentTime);
+                appDate.setHours(0, 0, 0, 0);
+                return appDate < todayVal;
+            });
+
+            setAppointments(activeApps);
 
             const blockRes = await axios.get(`http://localhost:8080/api/appointments/blocked?email=${doctorEmail}&date=${today}`);
             setBlockedSlots(blockRes.data);
 
             const historyRes = await axios.get(`http://localhost:8080/api/appointments/history/${doctorEmail}`);
-            setHistory(historyRes.data);
+
+            // Map expired unhandled apps nicely to the history list
+            const formattedExpiredApps = expiredApps.map(e => ({
+                ...e,
+                status: 'EXPIRED',
+                appointmentTime: e.appointmentTime
+            }));
+
+            setHistory([...historyRes.data, ...formattedExpiredApps].sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime)));
         } catch (err) { console.error("Data fetch error:", err); }
     }, [doctorEmail, today]);
 
